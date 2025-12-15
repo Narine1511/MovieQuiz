@@ -7,11 +7,13 @@ final class MovieQuizViewController: UIViewController {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = false
         
+        
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     @IBAction private func ButtonYes(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
+        
         
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
@@ -72,8 +74,11 @@ final class MovieQuizViewController: UIViewController {
     private func showQuestion(_ step: QuizStepViewModel) {
         imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
         imageView.image = step.image
+        imageView.layer.cornerRadius = 20
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        
+        
     } // отображает данные из вью модели на экране
     
     
@@ -114,7 +119,6 @@ final class MovieQuizViewController: UIViewController {
             let viewModel = convert(model: nextQuestion)
             showQuestion(viewModel)
         }
-        
     }
     
     private func show(quiz result: QuizResultsViewModel) {
