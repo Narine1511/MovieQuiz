@@ -32,6 +32,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var alertPresenter: AlertPresenter!
     private var statisticService: StatisticServiceProtocol!
     
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
+    // Метод включения/выключения кнопок
+    private func buttonsEnable(enabled: Bool) {
+        yesButton.isEnabled = enabled
+        noButton.isEnabled = enabled
+    }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,11 +89,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
         
-        
+        buttonsEnable(enabled: true)
     } // отображает данные из вью модели на экране
     
     
     private func showAnswerResult(isCorrect: Bool) { // Показываем результат ответа (правильно/неправильно)
+        
+        buttonsEnable(enabled: false)
+        
         if isCorrect == true {
             imageView.layer.masksToBounds = true
             imageView.layer.borderWidth = 8
@@ -110,7 +121,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func showNextQuestionOrResult() {  // Определяет, показывать следующий вопрос или результаты
         
         
-        if currentQuestionIndex == questionsAmount-1 {
+        if currentQuestionIndex >= 9 {
             // идем в состоние "Результат квиза"
             let text = correctAnswers == questionsAmount ?
             "Поздравляем, вы ответили на 10 из 10!" :
@@ -122,6 +133,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             show(quiz: viewModel)
         } else {
             currentQuestionIndex += 1
+            
             // идем в состонияе "Вопрос показан"
             self.questionFactory?.requestNextQuestion()
         }
@@ -163,7 +175,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 newFactoy.setup(delegate: self)
                 self.questionFactory = newFactoy
                 
-                self.showNextQuestionOrResult()
+                self.questionFactory?.requestNextQuestion()
             }
         )
         alertPresenter.show(alert: alertModel, on: self)
