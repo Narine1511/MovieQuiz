@@ -20,7 +20,6 @@ final class StatisticService: StatisticServiceProtocol {
     
     var gamesCount: Int {
         get {
-            
             // Чтение значения из UserDefaults
             return storage.integer(forKey: Keys.gamesCount.rawValue)
         }
@@ -61,7 +60,6 @@ final class StatisticService: StatisticServiceProtocol {
         }
     }
     
-    
     private var totalCorrectAnswers: Int {
         get { return
             storage.integer(forKey: Keys.totalCorrectAnswers.rawValue)}
@@ -94,12 +92,9 @@ final class StatisticService: StatisticServiceProtocol {
             
             let currentGame = GameResult(correct: count, total: amount, date: Date())
             
-            
             // Если текущая игра лучше сохранённой лучшей игры
             if currentGame.isBetterThan(bestGame) {
                     bestGame = currentGame
-                }
-            
-            
+            }
         }
     }
