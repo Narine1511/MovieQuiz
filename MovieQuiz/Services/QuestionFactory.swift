@@ -38,10 +38,10 @@ class QuestionFactory: QuestionFactoryProtocol {
             self.delegate = delegate
         }
     func requestNextQuestion() {
-            
+        guard movies.isEmpty == false else {return}
             DispatchQueue.global().async { [weak self] in
                 guard let self = self else { return }
-                let index = Int.random(in: 0..<self.movies.count) // код из учебника let index = (0..<self.movies.count).randomElement() ?? 0
+                let index = (0..<self.movies.count).randomElement() ?? 0 //let index = Int.random(in: 0..<self.movies.count) код из учебника
                 guard let movie = self.movies[safe: index] else { return }
                 var imageData = Data()
                 do {
@@ -50,8 +50,8 @@ class QuestionFactory: QuestionFactoryProtocol {
                     print("Failed to load image")
                 }
                 let rating = Float(movie.rating) ?? 0
-                let text = "Рейтинг этого фильма больше чем 7?"
-                let correctAnswer = rating > 7
+                let text = "Рейтинг этого фильма больше чем 8?"
+                let correctAnswer = rating > 8
                 let question = QuizQuestion(image: imageData, text: text, correctAnswer: correctAnswer)
                 
                 DispatchQueue.main.async { [weak self] in

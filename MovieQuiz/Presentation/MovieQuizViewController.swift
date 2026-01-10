@@ -200,7 +200,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 let newFactoy = QuestionFactory (moviesLoader: MoviesLoader(), delegate: self)
                 newFactoy.setup(delegate: self)
                 self.questionFactory = newFactoy
-                self.showNextQuestionOrResult()
+                /* self.showNextQuestionOrResult()*/
+                newFactoy.loadData()
+                
             }
         )
         alertPresenter.show(alert: alertModel, on: self)
