@@ -28,16 +28,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak var noButton: UIButton!
     @IBOutlet weak var yesButton: UIButton!
     
-    private func buttonsEnable(enabled: Bool) {
-        yesButton.isEnabled = enabled
-        noButton.isEnabled = enabled
-    }
-    
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticServiceProtocol!
     private lazy var alertPresenter = AlertPresenter(statisticService: statisticService)
+    private var currentQuestionIndex = 0
+    private var correctAnswers = 0
+    
+    private func buttonsEnable(enabled: Bool) {
+        yesButton.isEnabled = enabled
+        noButton.isEnabled = enabled
+    }
     
     private func showLoadingIndicator() {
         activityIndicator.isHidden = false // индикатор не скрыт
@@ -108,9 +110,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self?.showQuestion(viewModel)
         }
     }
-    
-    private var currentQuestionIndex = 0
-    private var correctAnswers = 0
 
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),

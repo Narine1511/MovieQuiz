@@ -4,8 +4,10 @@
 //
 //  Created by Наринэ  Овсепян on 31.12.2025.
 //
+
 import UIKit
-class AlertPresenter {
+
+final class AlertPresenter {
     private let statisticService: StatisticServiceProtocol
     
     init(statisticService: StatisticServiceProtocol) {
