@@ -4,7 +4,7 @@
 //
 //  Created by Наринэ  Овсепян on 22.12.2025.
 //
-import UIKit
+import Foundation
 
 struct QuizResultsViewModel {
     let title: String
