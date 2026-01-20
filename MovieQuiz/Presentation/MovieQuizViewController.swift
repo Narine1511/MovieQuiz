@@ -5,20 +5,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Lifecycle
     
     @IBAction private func ButtonNo(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = false
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        presenter.ButtonNo()
     }
     @IBAction private func ButtonYes(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = true
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        presenter.ButtonYes()
     }
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
@@ -30,7 +20,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private let presenter = MovieQuizPresenter()
     private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticServiceProtocol!
     private lazy var alertPresenter = AlertPresenter(statisticService: statisticService)
     private var correctAnswers = 0
@@ -100,18 +89,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: QuestionFactoryDelegate
     
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        DispatchQueue.main.async{ [weak self] in
-            self?.showQuestion(viewModel)
-        }
+        presenter.didReceiveNextQuestion(question: question)
     }
     
-    private func showQuestion(_ step: QuizStepViewModel) {
+    func showQuestion(step: QuizStepViewModel) {
         imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
         imageView.image = step.image
         imageView.layer.cornerRadius = 20
@@ -138,12 +121,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {[weak self] in
             guard let self = self else { return }
+            self.presenter.correctAnswers = self.correctAnswers
+            self.presenter.viewController?.questionFactory = self.questionFactory
             // код, который мы хотим вызвать через 1 секунду
-            showNextQuestionOrResult()
+            self.presenter.viewController?.showNextQuestionOrResult()
+    
         }
     }
     
-    private func showNextQuestionOrResult() {  // Определяет, показывать следующий вопрос или результаты
+    func showNextQuestionOrResult() {  // Определяет, показывать следующий вопрос или результаты
         
         if presenter.isLastQuestion() {
             // идем в состоние "Результат квиза"
@@ -154,7 +140,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 title: "Этот раунд окончен!",
                 text: text,
                 buttonText: "Сыграть ещё раз")
-            show(quiz: viewModel)
+            show(result: viewModel)
         } else {
             presenter.switchToNextQuestion()
             // идем в состонияе "Вопрос показан"
@@ -162,7 +148,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
-    private func show(quiz result: QuizResultsViewModel) {
+    func show(result: QuizResultsViewModel) {
         // Сохранение результата текущей игры
         statisticService.store(correct: correctAnswers, total: presenter.currentQuestionIndex)
         
