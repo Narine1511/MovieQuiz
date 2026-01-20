@@ -28,12 +28,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak var noButton: UIButton!
     @IBOutlet weak var yesButton: UIButton!
     
-    private let questionsAmount: Int = 10
+    private let presenter = MovieQuizPresenter()
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticServiceProtocol!
     private lazy var alertPresenter = AlertPresenter(statisticService: statisticService)
-    private var currentQuestionIndex = 0
     private var correctAnswers = 0
     
     private func buttonsEnable(enabled: Bool) {
@@ -61,7 +60,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 in
                 // весь код сброса игры
                 guard let self = self else {return}
-                self.currentQuestionIndex = 0
+                self.presenter.currentQuestionIndex = 0
                 self.correctAnswers = 0
                 self.imageView.layer.borderWidth = 0
                 
@@ -87,6 +86,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     override func viewDidLoad() {
         
+        presenter.viewController = self
         super.viewDidLoad()
         
         imageView.layer.cornerRadius = 20
@@ -105,17 +105,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             return
         }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async{ [weak self] in
             self?.showQuestion(viewModel)
         }
     }
-
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
-                                 question: model.text,
-                                 questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-    } // Преобразование данных. Происходит преобразование из QuizQuestion в QuizStepViewModel, картинка загружается по имени. + Происходит форматирование номера вопроса
     
     private func showQuestion(_ step: QuizStepViewModel) {
         imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
@@ -127,7 +121,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         buttonsEnable(enabled: true)
     } // отображает данные из вью модели на экране
     
-    private func showAnswerResult(isCorrect: Bool) { // Показываем результат ответа (правильно/неправильно)
+    func showAnswerResult(isCorrect: Bool) { // Показываем результат ответа (правильно/неправильно)
         buttonsEnable(enabled: false)
         
         if isCorrect == true {
@@ -151,9 +145,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func showNextQuestionOrResult() {  // Определяет, показывать следующий вопрос или результаты
         
-        if currentQuestionIndex == questionsAmount-1 {
+        if presenter.isLastQuestion() {
             // идем в состоние "Результат квиза"
-            let text = correctAnswers == questionsAmount ?
+            let text = correctAnswers == presenter.questionsAmount ?
             "Поздравляем, вы ответили на 10 из 10!" :
             "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
             let viewModel = QuizResultsViewModel(
@@ -162,7 +156,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 buttonText: "Сыграть ещё раз")
             show(quiz: viewModel)
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             // идем в состонияе "Вопрос показан"
             self.questionFactory?.requestNextQuestion()
         }
@@ -170,7 +164,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func show(quiz result: QuizResultsViewModel) {
         // Сохранение результата текущей игры
-        statisticService.store(correct: correctAnswers, total: 10)
+        statisticService.store(correct: correctAnswers, total: presenter.currentQuestionIndex)
         
         // Получание статистики для отображения
         let bestGame = statisticService.bestGame
@@ -191,7 +185,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 in
                 // весь код сброса игры
                 guard let self = self else {return}
-                self.currentQuestionIndex = 0
+                self.presenter.currentQuestionIndex = 0
                 self.correctAnswers = 0
                 self.imageView.layer.borderWidth = 0
                 
