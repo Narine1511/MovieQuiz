@@ -1,8 +1,41 @@
 import UIKit
 import Foundation
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
-    // MARK: - Lifecycle
+final class MovieQuizViewController: UIViewController {
+    
+    
+    
+    // MARK: - Lifecyclef
+    
+    @IBOutlet private weak var imageView: UIImageView!
+    @IBOutlet private weak var textLabel: UILabel!
+    @IBOutlet private weak var counterLabel: UILabel!
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
+    
+  /* private let statisticService: StatisticServiceProtocol*/
+    /*private weak var viewController: MovieQuizViewController?*/
+    
+    private var presenter: MovieQuizPresenter!
+    /*private var questionFactory: QuestionFactoryProtocol?*/
+    /* private var statisticService: StatisticServiceProtocol!
+     
+     private func buttonsEnable(enabled: Bool) {
+     yesButton.isEnabled = enabled
+     noButton.isEnabled = enabled
+     }*/
+  private lazy var alertPresenter = AlertPresenter(statisticService: StatisticService())
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        print("работаем?")
+        presenter = MovieQuizPresenter(viewController: self)
+      /*  presenter.viewController = self */
+        
+        imageView.layer.cornerRadius = 20
+    }
+    
     
     @IBAction private func ButtonNo(_ sender: UIButton) {
         presenter.ButtonNo()
@@ -10,35 +43,57 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBAction private func ButtonYes(_ sender: UIButton) {
         presenter.ButtonYes()
     }
-    @IBOutlet private weak var imageView: UIImageView!
-    @IBOutlet private weak var textLabel: UILabel!
-    @IBOutlet private weak var counterLabel: UILabel!
-    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
-    @IBOutlet weak var noButton: UIButton!
-    @IBOutlet weak var yesButton: UIButton!
     
-    private let presenter = MovieQuizPresenter()
-    private var questionFactory: QuestionFactoryProtocol?
-    private var statisticService: StatisticServiceProtocol!
-    private lazy var alertPresenter = AlertPresenter(statisticService: statisticService)
-    private var correctAnswers = 0
-    
-    private func buttonsEnable(enabled: Bool) {
-        yesButton.isEnabled = enabled
-        noButton.isEnabled = enabled
+    func showQuestion(step: QuizStepViewModel) {
+        imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
+        imageView.image = step.image
+        imageView.layer.cornerRadius = 20
+        textLabel.text = step.question
+        counterLabel.text = step.questionNumber
+        
+        /* buttonsEnable(enabled: true)*/
     }
     
-    private func showLoadingIndicator() {
+    func show(result: QuizResultsViewModel) {
+        
+        let message = presenter.makeResultsMessage()
+        // Создание текста со статистикой
+        /*let statisticMessage = "Ваш результат: \(presenter.correctAnswers)/10\nКоличество сыгранных квизов: \(statisticService.gamesCount)\nРекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(dateString))\nСредняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"*/
+        
+        let alert = UIAlertController (
+            title: result.title,
+            message: message,
+            preferredStyle: .alert)
+        
+        let action = UIAlertAction (
+            title: result.buttonText,
+            style: .default) { [weak self] _ in
+                // весь код сброса игры
+                guard let self = self else {return}
+                self.presenter.restartGame()
+                self.imageView.layer.borderWidth = 0
+            }
+        alert.addAction(action)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 8
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func showLoadingIndicator() {
         activityIndicator.isHidden = false // индикатор не скрыт
         activityIndicator.startAnimating() // включаем анимацию
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.isHidden = true // индикатор скрыт
     }
     
-    private func showNetworkError(message: String) {
+    func showNetworkError(message: String) {
         hideLoadingIndicator()
         
         let alertModel = AlertModel(
@@ -49,139 +104,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 in
                 // весь код сброса игры
                 guard let self = self else {return}
-                self.presenter.currentQuestionIndex = 0
-                self.correctAnswers = 0
                 self.imageView.layer.borderWidth = 0
                 
-                //пересоздание фабрики
-                let newFactoy = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-                newFactoy.setup(delegate: self)
-                self.questionFactory = newFactoy
-            }
-        )
-        alertPresenter.show(alert: alertModel, on: self)
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        hideLoadingIndicator()
-        let message = (error as NSError).localizedDescription
-        showNetworkError(message: message)
-    }
-    
-    func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        questionFactory?.requestNextQuestion()
-    }
-    
-    override func viewDidLoad() {
-        
-        presenter.viewController = self
-        super.viewDidLoad()
-        
-        imageView.layer.cornerRadius = 20
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-        statisticService = StatisticService() // Инициализация сервиса по статистике
-        alertPresenter = AlertPresenter(statisticService: statisticService)  // Создаём AlertPresenter, передавая ему statisticService
-        showLoadingIndicator()
-        questionFactory?.loadData()
-        /*questionFactory.requestNextQuestion()*/
-    }
-    
-    // MARK: QuestionFactoryDelegate
-    
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
-    
-    func showQuestion(step: QuizStepViewModel) {
-        imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
-        imageView.image = step.image
-        imageView.layer.cornerRadius = 20
-        textLabel.text = step.question
-        counterLabel.text = step.questionNumber
-        
-        buttonsEnable(enabled: true)
-    } // отображает данные из вью модели на экране
-    
-    func showAnswerResult(isCorrect: Bool) { // Показываем результат ответа (правильно/неправильно)
-        buttonsEnable(enabled: false)
-        
-        if isCorrect == true {
-            imageView.layer.masksToBounds = true
-            imageView.layer.borderWidth = 8
-            imageView.layer.borderColor = UIColor.ypGreen.cgColor
-            imageView.layer.cornerRadius = 20
-            correctAnswers += 1
-        } else {
-            imageView.layer.masksToBounds = true
-            imageView.layer.borderWidth = 8
-            imageView.layer.borderColor = UIColor.ypRed.cgColor
-            imageView.layer.cornerRadius = 20
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {[weak self] in
-            guard let self = self else { return }
-            self.presenter.correctAnswers = self.correctAnswers
-            self.presenter.viewController?.questionFactory = self.questionFactory
-            // код, который мы хотим вызвать через 1 секунду
-            self.presenter.viewController?.showNextQuestionOrResult()
-    
-        }
-    }
-    
-    func showNextQuestionOrResult() {  // Определяет, показывать следующий вопрос или результаты
-        
-        if presenter.isLastQuestion() {
-            // идем в состоние "Результат квиза"
-            let text = correctAnswers == presenter.questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10!" :
-            "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
-            let viewModel = QuizResultsViewModel(
-                title: "Этот раунд окончен!",
-                text: text,
-                buttonText: "Сыграть ещё раз")
-            show(result: viewModel)
-        } else {
-            presenter.switchToNextQuestion()
-            // идем в состонияе "Вопрос показан"
-            self.questionFactory?.requestNextQuestion()
-        }
-    }
-    
-    func show(result: QuizResultsViewModel) {
-        // Сохранение результата текущей игры
-        statisticService.store(correct: correctAnswers, total: presenter.currentQuestionIndex)
-        
-        // Получание статистики для отображения
-        let bestGame = statisticService.bestGame
-        
-        // Формируем дату
-        let dateString = bestGame.date.dateTimeString
-        
-        /*let message = presenter.makeResultsMessage()*/
-        // Создание текста со статистикой
-        let statisticMessage = "Ваш результат: \(correctAnswers)/10\nКоличество сыгранных квизов: \(statisticService.gamesCount)\nРекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(dateString))\nСредняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"
-        
-        // создаем модель для алерта
-        let alertModel = AlertModel(
-            title: result.title,
-            message: statisticMessage,
-            buttonText: result.buttonText,
-            completion:{ [weak self]
-                in
-                // весь код сброса игры
-                guard let self = self else {return}
-                self.presenter.currentQuestionIndex = 0
-                self.correctAnswers = 0
-                self.imageView.layer.borderWidth = 0
-                
-                //пересоздание фабрики
-                let newFactoy = QuestionFactory (moviesLoader: MoviesLoader(), delegate: self)
-                newFactoy.setup(delegate: self)
-                self.questionFactory = newFactoy
-                /* self.showNextQuestionOrResult()*/
-                newFactoy.loadData()
-                
+                self.presenter.restartGame()
             }
         )
         alertPresenter.show(alert: alertModel, on: self)
