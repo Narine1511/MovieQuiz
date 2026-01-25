@@ -1,8 +1,7 @@
 import UIKit
 import Foundation
 
-final class MovieQuizViewController: UIViewController {
-    
+final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
     
     
     // MARK: - Lifecyclef
@@ -47,7 +46,7 @@ final class MovieQuizViewController: UIViewController {
     
     func showQuestion(step: QuizStepViewModel) {
         imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
-        imageView.image = step.image
+        imageView.image = UIImage(data: step.image) ?? UIImage()
         imageView.layer.cornerRadius = 20
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
@@ -78,10 +77,15 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
-    func highlightImageBorder(isCorrectAnswer: Bool) {
+    func showLoadingImdicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    func highlightImageBorder(isCorrect: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
     func showLoadingIndicator() {
@@ -91,6 +95,11 @@ final class MovieQuizViewController: UIViewController {
     
     func hideLoadingIndicator() {
         activityIndicator.isHidden = true // индикатор скрыт
+    }
+    
+    func enableButtons(enable: Bool) {
+        yesButton.isEnabled = enable
+        noButton.isEnabled = enable
     }
     
     func showNetworkError(message: String) {
