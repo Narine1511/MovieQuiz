@@ -17,14 +17,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
     /*private weak var viewController: MovieQuizViewController?*/
     
     private var presenter: MovieQuizPresenter!
-    /*private var questionFactory: QuestionFactoryProtocol?*/
-    /* private var statisticService: StatisticServiceProtocol!
-     
-     private func buttonsEnable(enabled: Bool) {
-     yesButton.isEnabled = enabled
-     noButton.isEnabled = enabled
-     }*/
-  private lazy var alertPresenter = AlertPresenter(statisticService: StatisticService())
+
+    private lazy var alertPresenter = AlertPresenter(statisticService: StatisticService())
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,7 +29,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
         imageView.layer.cornerRadius = 20
     }
     
-    
     @IBAction private func ButtonNo(_ sender: UIButton) {
         presenter.ButtonNo()
     }
@@ -43,22 +36,17 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
         presenter.ButtonYes()
     }
     
-    
     func showQuestion(step: QuizStepViewModel) {
         imageView.layer.borderWidth = 0 // сбрасываем цвет рамки перед показом нового вопроса
         imageView.image = UIImage(data: step.image) ?? UIImage()
         imageView.layer.cornerRadius = 20
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
-        
-        /* buttonsEnable(enabled: true)*/
     }
     
     func show(result: QuizResultsViewModel) {
         
         let message = presenter.makeResultsMessage()
-        // Создание текста со статистикой
-        /*let statisticMessage = "Ваш результат: \(presenter.correctAnswers)/10\nКоличество сыгранных квизов: \(statisticService.gamesCount)\nРекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(dateString))\nСредняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"*/
         
         let alert = UIAlertController (
             title: result.title,
