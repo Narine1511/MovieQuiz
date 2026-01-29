@@ -36,6 +36,7 @@
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="749" text="1/10" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="h2m-5d-stK" userLabel="Index Label">
                                                 <rect key="frame" x="338" y="0.0" width="36" height="28.5"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="Index"/>
                                                 <fontDescription key="fontDescription" name="YSDisplay-Medium" family="YS Display" pointSize="20"/>
                                                 <color key="textColor" name="YP White"/>
                                                 <nil key="highlightedColor"/>
@@ -62,6 +63,7 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MqV-tx-xDQ" userLabel="Кнопка Нет">
                                                 <rect key="frame" x="0.0" y="0.0" width="157" height="60"/>
                                                 <color key="backgroundColor" name="YP White"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="No"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="60" id="9Py-To-cIN"/>
                                                     <constraint firstAttribute="width" constant="157" id="IXG-is-E2N"/>
@@ -102,9 +104,6 @@
                                                 </connections>
                                             </button>
                                         </subviews>
-                                        <constraints>
-                                            <constraint firstItem="eyC-9c-1ON" firstAttribute="leading" secondItem="MqV-tx-xDQ" secondAttribute="trailing" constant="20" id="3cU-Xh-dqS"/>
-                                        </constraints>
                                     </stackView>
                                 </subviews>
                             </stackView>
